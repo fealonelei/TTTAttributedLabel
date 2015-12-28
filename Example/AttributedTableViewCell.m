@@ -1,17 +1,17 @@
 // AttributedTableViewCell.m
 //
 // Copyright (c) 2011 Mattt Thompson (http://mattt.me)
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -46,6 +46,59 @@ static inline NSRegularExpression * ParenthesisRegularExpression() {
     return _parenthesisRegularExpression;
 }
 
+/*=========================================================================================================================================*/
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wall"
+/**
+ *
+ *  @brief  Twitter or Weibo mention( @somebody ) function
+ *
+ */
+static inline NSRegularExpression * MentionRegularExpression() {
+    static NSRegularExpression *_mentionRegularExpression = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _mentionRegularExpression = [[NSRegularExpression alloc] initWithPattern:@"@[\u4e00-\u9fa5a-zA-Z0-9_-]{2,30}" options:NSRegularExpressionCaseInsensitive error:nil];
+    });
+    
+    return _mentionRegularExpression;
+}
+
+/**
+ *
+ *  @brief Hash tag in Twitter style
+ *
+ */
+static inline NSRegularExpression * HashTagTwitterRegularExpression() {
+    static NSRegularExpression *_hashTagTwitterRegularExpression = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSError *error = nil;
+        _hashTagTwitterRegularExpression = [[NSRegularExpression alloc] initWithPattern:@"(?<!\\w)#([\\w\\_]+)?" options:0 error:&error];
+    });
+    
+    return _hashTagTwitterRegularExpression;
+}
+
+/**
+ *
+ *  @brief  Hash tag in Weibo style ( don't know Weibo yet ? visit https://en.wikipedia.org/wiki/Sina_Weibo )
+ *
+ */
+static inline NSRegularExpression * HashTagWeiboRegularExpression() {
+    static NSRegularExpression *_hashTagWeiboRegularExpression = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _hashTagWeiboRegularExpression = [[NSRegularExpression alloc] initWithPattern:@"(?<!\\w)#([^#]+?)#" options:NSRegularExpressionCaseInsensitive error:nil];
+    });
+    
+    return _hashTagWeiboRegularExpression;
+}
+#pragma clang diagnostic pop
+
+/*=========================================================================================================================================*/
+
 @implementation AttributedTableViewCell
 @synthesize summaryText = _summaryText;
 @synthesize summaryLabel = _summaryLabel;
@@ -59,12 +112,15 @@ static inline NSRegularExpression * ParenthesisRegularExpression() {
     self.layer.shouldRasterize = YES;
     self.layer.rasterizationScale = [[UIScreen mainScreen] scale];
     
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     self.summaryLabel = [[TTTAttributedLabel alloc] initWithFrame:CGRectZero];
     self.summaryLabel.font = [UIFont systemFontOfSize:kEspressoDescriptionTextFontSize];
     self.summaryLabel.textColor = [UIColor darkGrayColor];
     self.summaryLabel.lineBreakMode = UILineBreakModeWordWrap;
     self.summaryLabel.numberOfLines = 0;
     self.summaryLabel.linkAttributes = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] forKey:(__bridge NSString *)kCTUnderlineStyleAttributeName];
+#pragma clang diagnostic pop
     
     NSMutableDictionary *mutableActiveLinkAttributes = [NSMutableDictionary dictionary];
     [mutableActiveLinkAttributes setValue:[NSNumber numberWithBool:NO] forKey:(NSString *)kCTUnderlineStyleAttributeName];
@@ -82,7 +138,7 @@ static inline NSRegularExpression * ParenthesisRegularExpression() {
     self.summaryLabel.highlightedShadowOffset = CGSizeMake(0.0f, -1.0f);
     self.summaryLabel.highlightedShadowRadius = 1;
     self.summaryLabel.verticalAlignment = TTTAttributedLabelVerticalAlignmentTop;
-
+    
     [self.contentView addSubview:self.summaryLabel];
     
     self.isAccessibilityElement = NO;
@@ -126,6 +182,21 @@ static inline NSRegularExpression * ParenthesisRegularExpression() {
             }
         }];
         
+        regexp = HashTagWeiboRegularExpression();
+        [regexp enumerateMatchesInString:[mutableAttributedString string] options:0 range:stringRange usingBlock:^(NSTextCheckingResult * result, __unused NSMatchingFlags flags, __unused BOOL *stop) {
+            UIFont *italicSystemFont = [UIFont italicSystemFontOfSize:kEspressoDescriptionTextFontSize];
+            CTFontRef italicFont = CTFontCreateWithName((__bridge CFStringRef)italicSystemFont.fontName, italicSystemFont.pointSize, NULL);
+            if (italicFont) {
+                [mutableAttributedString removeAttribute:(NSString *)kCTFontAttributeName range:result.range];
+                [mutableAttributedString addAttribute:(NSString *)kCTFontAttributeName value:(__bridge id)italicFont range:result.range];
+                CFRelease(italicFont);
+                
+                [mutableAttributedString removeAttribute:(NSString *)kCTForegroundColorAttributeName range:result.range];
+                [mutableAttributedString addAttribute:(NSString *)kCTForegroundColorAttributeName value:(__bridge id)[[UIColor redColor] CGColor] range:result.range];
+            }
+        }];
+        
+        
         return mutableAttributedString;
     }];
     
@@ -139,11 +210,14 @@ static inline NSRegularExpression * ParenthesisRegularExpression() {
 
 + (CGFloat)heightForCellWithText:(NSString *)text availableWidth:(CGFloat)availableWidth {
     static CGFloat padding = 10.0;
-
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     UIFont *systemFont = [UIFont systemFontOfSize:kEspressoDescriptionTextFontSize];
     CGSize textSize = CGSizeMake(availableWidth - (2 * padding) - 26, CGFLOAT_MAX); // rough accessory size
     CGSize sizeWithFont = [text sizeWithFont:systemFont constrainedToSize:textSize lineBreakMode:NSLineBreakByWordWrapping];
-
+#pragma clang diagnostic pop
+    
 #if defined(__LP64__) && __LP64__
     return ceil(sizeWithFont.height) + padding;
 #else
@@ -157,7 +231,7 @@ static inline NSRegularExpression * ParenthesisRegularExpression() {
     [super layoutSubviews];
     self.textLabel.hidden = YES;
     self.detailTextLabel.hidden = YES;
-        
+    
     self.summaryLabel.frame = CGRectOffset(CGRectInset(self.bounds, 20.0f, 5.0f), -10.0f, 0.0f);
     
     [self setNeedsDisplay];
