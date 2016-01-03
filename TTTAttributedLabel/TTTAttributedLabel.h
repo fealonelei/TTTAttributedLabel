@@ -40,6 +40,13 @@ typedef NS_ENUM(NSInteger, TTTAttributedLabelVerticalAlignment) {
     TTTAttributedLabelVerticalAlignmentBottom   = 2,
 };
 
+typedef NS_OPTIONS(NSUInteger, TTTextCheckingType) {
+    TTTextCheckingTypeNone = 0,
+    TTTextCheckingTypeMention = 1 << 0,
+    TTTextCheckingTypeTwtterHashTag = 1 << 1,
+    TTTextCheckingTypeWeiboHashTag = 1 << 2
+};
+
 /**
  Determines whether the text to which this attribute applies has a strikeout drawn through itself.
  */
@@ -334,6 +341,50 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
  */
 @property (readwrite, nonatomic, copy) NSAttributedString *attributedText;
 
+/*=========================================================================================================================================*/
+
+/**
+ *
+ *  A bitmask of `TTTextCheckingType` which are used to automatically detect custom dection type in the label text.
+ *
+ *  @warning You must specify `TTTextCheckingTypes` before setting the `text`, if you want to use social media text type detection , with either `setText:` or `setText:afterInheritingLabelAttributesAndConfiguringWithBlock:`.
+ */
+@property (nonatomic, assign) TTTextCheckingType checkType;
+
+
+/**
+ *
+ *  @brief  <#Description#>
+ */
+@property (nonatomic, strong) NSDictionary<NSString *, id> *mentionAttributes;
+
+/**
+ *
+ *  @brief  <#Description#>
+ */
+@property (nonatomic, strong) NSDictionary<NSString *, id> *twitterHashTagAttributes;
+
+/**
+ *
+ *  @brief  <#Description#>
+ */
+@property (nonatomic, strong) NSDictionary<NSString *, id> *weiboHashTagAttributes;
+
+
+/*=========================================================================================================================================*/
+
+/**
+ *
+ *  @brief  <#Description#>
+ *
+ *  @warning if `@property checkType` has been set, this method MUST be called, otherwise exception may happen.
+ *
+ *  @return <#return value description#>
+ */
+- (NSMutableAttributedString *)retrieveFromSocialRegexResult;
+
+/*=========================================================================================================================================*/
+
 ///-------------------
 /// @name Adding Links
 ///-------------------
@@ -527,6 +578,38 @@ didSelectLinkWithPhoneNumber:(NSString *)phoneNumber;
 - (void)attributedLabel:(TTTAttributedLabel *)label
 didSelectLinkWithTransitInformation:(NSDictionary *)components;
 
+/*=========================================================================================================================================*/
+
+/**
+ *
+ *  @brief  <#Description#>
+ *
+ *  @param label         <#label description#>
+ *  @param mentionString <#mentionString description#>
+ */
+- (void)attributedLabel:(TTTAttributedLabel *)label
+   didSelectMentionLink:(NSString *)mentionString;
+
+/**
+ *  @brief  <#Description#>
+ *
+ *  @param label         <#label description#>
+ *  @param hashTagString <#hashTagString description#>
+ */
+- (void)attributedLabel:(TTTAttributedLabel *)label
+didSelectTwitterHashTag:(NSString *)hashTagString;
+
+/**
+ *  @brief  <#Description#>
+ *
+ *  @param label         <#label description#>
+ *  @param hashTagString <#hashTagString description#>
+ */
+- (void)attributedLabel:(TTTAttributedLabel *)label
+  didSelectWeiboHashTag:(NSString *)hashTagString;
+
+/*=========================================================================================================================================*/
+
 /**
  Tells the delegate that the user did select a link to a text checking result.
  
@@ -619,6 +702,43 @@ didLongPressLinkWithDate:(NSDate *)date
 - (void)attributedLabel:(TTTAttributedLabel *)label
 didLongPressLinkWithTransitInformation:(NSDictionary *)components
                 atPoint:(CGPoint)point;
+
+/*=========================================================================================================================================*/
+
+/**
+ *  @brief  <#Description#>
+ *
+ *  @param label         <#label description#>
+ *  @param mentionString <#mentionString description#>
+ *  @param point         <#point description#>
+ */
+- (void)attributedLabel:(TTTAttributedLabel *)label
+didLongPressLinkWithMention:(NSString *)mentionString
+                atPoint:(CGPoint)point;
+
+/**
+ *  @brief  <#Description#>
+ *
+ *  @param label         <#label description#>
+ *  @param hashTagString <#hashTagString description#>
+ *  @param point         <#point description#>
+ */
+- (void)attributedLabel:(TTTAttributedLabel *)label
+didLongPressLinkWithTwitterHashTag:(NSString *)hashTagString
+                atPoint:(CGPoint)point;
+
+/**
+ *  @brief  <#Description#>
+ *
+ *  @param label         <#label description#>
+ *  @param hashTagString <#hashTagString description#>
+ *  @param point         <#point description#>
+ */
+- (void)attributedLabel:(TTTAttributedLabel *)label
+didLongPressLinkWithWeiboHashTag:(NSString *)hashTagString
+                atPoint:(CGPoint)point;
+
+/*=========================================================================================================================================*/
 
 /**
  Tells the delegate that the user long-pressed a link to a text checking result.

@@ -63,7 +63,7 @@ heightForRowAtIndexPath:(__unused NSIndexPath *)indexPath
                                            availableWidth:CGRectGetWidth(tableView.frame)];
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(__unused NSIndexPath *)indexPath {
     static NSString *CellIdentifier = @"Cell";
     
     AttributedTableViewCell *cell = (AttributedTableViewCell *)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
@@ -73,13 +73,16 @@ heightForRowAtIndexPath:(__unused NSIndexPath *)indexPath
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
     
-    NSString *description = [self.espressos objectAtIndex:(NSUInteger)indexPath.row];
-    cell.summaryText = description;
-    cell.summaryLabel.delegate = self;
-    cell.summaryLabel.userInteractionEnabled = YES;
-
     return cell;
 }
+
+- (void)tableView:(__unused UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSString *description = [self.espressos objectAtIndex:(NSUInteger)indexPath.row];
+    ((AttributedTableViewCell *)cell).summaryText = description;
+    ((AttributedTableViewCell *)cell).summaryLabel.delegate = self;
+    ((AttributedTableViewCell *)cell).summaryLabel.userInteractionEnabled = YES;
+}
+
 
 #pragma mark - UITableViewDelegate
 
@@ -106,6 +109,38 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
                       cancelButtonTitle:@"Woohoo!"
                       otherButtonTitles:nil] show];
 }
+
+/*=========================================================================================================================================*/
+- (void)attributedLabel:(__unused TTTAttributedLabel *)label didSelectMentionLink:(__unused NSString *)mentionString {
+    
+}
+
+- (void)attributedLabel:(__unused TTTAttributedLabel *)label didSelectTwitterHashTag:(__unused NSString *)hashTagString {
+    
+}
+
+- (void)attributedLabel:(__unused TTTAttributedLabel *)label didSelectWeiboHashTag:(__unused NSString *)hashTagString {
+    NSLog(@"Aha, you tap on a weibo style hashtag %@", hashTagString);
+}
+
+-(void)attributedLabel:(__unused TTTAttributedLabel *)label didLongPressLinkWithMention:(__unused NSString *)mentionString atPoint:(__unused CGPoint)point {
+    
+}
+
+-(void)attributedLabel:(__unused TTTAttributedLabel *)label didLongPressLinkWithTwitterHashTag:(__unused NSString *)hashTagString atPoint:(__unused CGPoint)point {
+    
+}
+
+-(void)attributedLabel:(__unused TTTAttributedLabel *)label didLongPressLinkWithWeiboHashTag:(__unused NSString *)hashTagString atPoint:(__unused CGPoint)point {
+    [[[UIAlertView alloc] initWithTitle:@"Weibo Hash Tag Long Pressed"
+                                message:@"You long-pressed a Weibo style Hash Tag. Well done!"
+                               delegate:nil
+                      cancelButtonTitle:@"😄"
+                      otherButtonTitles:nil] show];
+}
+
+
+/*=========================================================================================================================================*/
 
 #pragma mark - UIActionSheetDelegate
 

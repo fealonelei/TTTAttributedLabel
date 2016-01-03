@@ -28,6 +28,14 @@
 
 #define kTTTLineBreakWordWrapTextWidthScalingFactor (M_PI / M_E)
 
+/*=========================================================================================================================================*/
+
+NSString * const kTTTMentionRegexPatternString = @"@[\u4e00-\u9fa5a-zA-Z0-9_-]{2,30}";
+NSString * const kTTTHashTagTwitterPatternString = @"(?<!\\w)#([\\w\\_]+)?";
+NSString * const kTTTHashTagWeiboPatternString = @"(?<!\\w)#([^#]+?)#";
+
+/*=========================================================================================================================================*/
+
 static CGFloat const TTTFLOAT_MAX = 100000;
 
 NSString * const kTTTStrikeOutAttributeName = @"TTTStrikeOutAttribute";
@@ -71,6 +79,58 @@ typedef UITextAlignment TTTTextAlignment;
 typedef UILineBreakMode TTTLineBreakMode;
 #endif
 
+/*=========================================================================================================================================*/
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wall"
+/**
+ *
+ *  @brief  Twitter or Weibo mention( @somebody ) function
+ *
+ */
+static inline NSRegularExpression * MentionRegularExpression() {
+    static NSRegularExpression *_mentionRegularExpression = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _mentionRegularExpression = [[NSRegularExpression alloc] initWithPattern:kTTTMentionRegexPatternString options:NSRegularExpressionCaseInsensitive error:nil];
+    });
+    
+    return _mentionRegularExpression;
+}
+
+/**
+ *
+ *  @brief Hash tag in Twitter style
+ *
+ */
+static inline NSRegularExpression * HashTagTwitterRegularExpression() {
+    static NSRegularExpression *_hashTagTwitterRegularExpression = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSError *error = nil;
+        _hashTagTwitterRegularExpression = [[NSRegularExpression alloc] initWithPattern:kTTTHashTagTwitterPatternString options:0 error:&error];
+    });
+    
+    return _hashTagTwitterRegularExpression;
+}
+
+/**
+ *
+ *  @brief  Hash tag in Weibo style ( don't know Weibo yet ? visit https://en.wikipedia.org/wiki/Sina_Weibo )
+ *
+ */
+static inline NSRegularExpression * HashTagWeiboRegularExpression() {
+    static NSRegularExpression *_hashTagWeiboRegularExpression = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _hashTagWeiboRegularExpression = [[NSRegularExpression alloc] initWithPattern:kTTTHashTagWeiboPatternString options:NSRegularExpressionCaseInsensitive error:nil];
+    });
+    
+    return _hashTagWeiboRegularExpression;
+}
+#pragma clang diagnostic pop
+
+/*=========================================================================================================================================*/
 
 static inline CTTextAlignment CTTextAlignmentFromTTTTextAlignment(TTTTextAlignment alignment) {
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 60000
@@ -341,6 +401,14 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
 @property (readwrite, nonatomic, strong) TTTAttributedLabelLink *activeLink;
 @property (readwrite, nonatomic, strong) NSArray *accessibilityElements;
 
+/*=========================================================================================================================================*/
+@property (readwrite, nonatomic, strong) NSMutableAttributedString *tempAttributedString;
+@property (nonatomic, strong) NSRegularExpression *mentionRegexp;
+@property (nonatomic, strong) NSRegularExpression *twitterHashTagRegexp;
+@property (nonatomic, strong) NSRegularExpression *weiboHashTagRegexp;
+@property (nonatomic, assign) TTTextCheckingType realCheckType;
+/*=========================================================================================================================================*/
+
 - (void) longPressGestureDidFire:(UILongPressGestureRecognizer *)sender;
 @end
 
@@ -608,6 +676,110 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
         self.dataDetector = nil;
     }
 }
+
+
+/*=========================================================================================================================================*/
+
+/**
+ *
+ *  @brief  <#Description#>
+ *
+ *  @param checkType <#checkType description#>
+ */
+- (void)setCheckType: (TTTextCheckingType)checkType {
+    if (checkType & TTTextCheckingTypeMention) {
+        self.mentionRegexp = MentionRegularExpression();
+    }
+    
+    if (checkType & TTTextCheckingTypeTwtterHashTag) {
+        self.twitterHashTagRegexp = HashTagTwitterRegularExpression();
+    }
+    
+    if (checkType & TTTextCheckingTypeWeiboHashTag) {
+        self.weiboHashTagRegexp = HashTagWeiboRegularExpression();
+    }
+    
+    self.realCheckType |= checkType;
+}
+
+
+/**
+ *
+ *  @brief  <#Description#>
+ *
+ *  @param mentionAttributes <#mentionAttributes description#>
+ */
+- (void)setMentionAttributes: (NSDictionary<NSString *,id> *)mentionAttributes {
+    NSAssert(self.realCheckType & TTTextCheckingTypeMention, @"you didn't enable TTTextCheckingTypeMention");
+    
+    [self.mentionRegexp enumerateMatchesInString: [self.tempAttributedString string]
+                                         options: 0
+                                           range: NSMakeRange(0, [self.tempAttributedString length])
+                                      usingBlock: ^(__unused NSTextCheckingResult *result, __unused NSMatchingFlags flags, __unused BOOL *stop) {
+                                          for (NSString *attribute in mentionAttributes.allKeys) {
+                                              [self.tempAttributedString removeAttribute:attribute range:result.range];
+                                              [self.tempAttributedString addAttribute:attribute value:mentionAttributes[attribute] range:result.range];
+                                          }
+                                          self.attributedText = self.tempAttributedString;
+                                          [self addLinkWithTextCheckingResult:result attributes:mentionAttributes];
+                                      }];
+}
+
+/**
+ *
+ *  @brief  <#Description#>
+ *
+ *  @param twitterHashTagAttributes <#twitterHashTagAttributes description#>
+ */
+- (void)setTwitterHashTagAttributes: (NSDictionary<NSString *,id> *)twitterHashTagAttributes {
+    NSAssert(self.realCheckType & TTTextCheckingTypeTwtterHashTag, @"you didn't enable TTTextCheckingTypeTwitterHashTag");
+    
+    [self.twitterHashTagRegexp enumerateMatchesInString: [self.tempAttributedString string]
+                                                options: 0
+                                                  range: NSMakeRange(0, [self.tempAttributedString length])
+                                             usingBlock: ^(__unused NSTextCheckingResult *result, __unused NSMatchingFlags flags, __unused BOOL *stop) {
+                                                 for (NSString *attribute in twitterHashTagAttributes.allKeys) {
+                                                     [self.tempAttributedString removeAttribute:attribute range:result.range];
+                                                     [self.tempAttributedString addAttribute:attribute value:twitterHashTagAttributes[attribute] range:result.range];
+                                                 }
+                                                 self.attributedText = self.tempAttributedString;
+                                                 [self addLinkWithTextCheckingResult:result attributes:twitterHashTagAttributes];
+                                             }];
+}
+
+/**
+ *
+ *  @brief  <#Description#>
+ *
+ *  @param weiboHashTagAttributes <#weiboHashTagAttributes description#>
+ */
+- (void)setWeiboHashTagAttributes: (NSDictionary<NSString *,id> *)weiboHashTagAttributes {
+    NSAssert(self.realCheckType & TTTextCheckingTypeWeiboHashTag, @"you didn't enable TTTextCheckingTypeWeiboHashTag");
+    
+    [self.weiboHashTagRegexp enumerateMatchesInString: [self.tempAttributedString string]
+                                              options: 0
+                                                range: NSMakeRange(0, [self.tempAttributedString length])
+                                           usingBlock: ^(__unused NSTextCheckingResult *result, __unused NSMatchingFlags flags, __unused BOOL *stop) {
+                                               for (NSString *attribute in weiboHashTagAttributes.allKeys) {
+                                                   [self.tempAttributedString removeAttribute:attribute range:result.range];
+                                                   [self.tempAttributedString addAttribute:attribute value: weiboHashTagAttributes[attribute] range:result.range];
+                                               }
+                                               self.attributedText = self.tempAttributedString;
+                                               [self addLinkWithTextCheckingResult:result attributes:weiboHashTagAttributes];
+                                           }];
+}
+
+/**
+ *
+ *  @brief  <#Description#>
+ *
+ *  @return <#return value description#>
+ */
+- (NSMutableAttributedString *)retrieveFromSocialRegexResult {
+    return self.tempAttributedString;
+}
+
+/*=========================================================================================================================================*/
 
 - (void)addLink:(TTTAttributedLabelLink *)link {
     [self addLinks:@[link]];
@@ -1158,8 +1330,9 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
 
     self.attributedText = text;
     self.activeLink = nil;
-
-    self.linkModels = [NSArray array];
+/*=========================================================================================================================================*/
+//    self.linkModels = [NSArray array];
+/*=========================================================================================================================================*/   
     if (text && self.attributedText && self.enabledTextCheckingTypes) {
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 50000
         __unsafe_unretained __typeof(self)weakSelf = self;
@@ -1205,7 +1378,9 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
         mutableAttributedString = [[NSMutableAttributedString alloc] initWithAttributedString:text];
         [mutableAttributedString addAttributes:NSAttributedStringAttributesFromLabel(self) range:NSMakeRange(0, [mutableAttributedString length])];
     }
-
+/*=========================================================================================================================================*/
+    self.tempAttributedString = mutableAttributedString;
+/*=========================================================================================================================================*/ 
     if (block) {
         mutableAttributedString = block(mutableAttributedString);
     }
@@ -1636,6 +1811,31 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
                     [self.delegate attributedLabel:self didSelectLinkWithTransitInformation:result.components];
                     return;
                 }
+                break;
+/*=========================================================================================================================================*/
+            case NSTextCheckingTypeRegularExpression:
+                if ([result.regularExpression.pattern isEqualToString:kTTTMentionRegexPatternString]) {
+                    if ([self.delegate respondsToSelector:@selector(attributedLabel:didSelectMentionLink:)]) {
+                        [self.delegate attributedLabel:self didSelectMentionLink:[self.attributedText.string substringWithRange:result.range]];
+                        return;
+                    }
+                    
+                } else if ([result.regularExpression.pattern isEqualToString:kTTTHashTagTwitterPatternString]) {
+                    if ([self.delegate respondsToSelector:@selector(attributedLabel:didSelectTwitterHashTag:)]) {
+                        [self.delegate attributedLabel:self didSelectTwitterHashTag:[self.attributedText.string substringWithRange:result.range]];
+                        return;
+                    }
+                    
+                } else if ([result.regularExpression.pattern isEqualToString:kTTTHashTagWeiboPatternString]) {
+                    if ([self.delegate respondsToSelector:@selector(attributedLabel:didSelectWeiboHashTag:)]) {
+                        [self.delegate attributedLabel:self didSelectWeiboHashTag:[self.attributedText.string substringWithRange:result.range]];
+                        return;
+                    }
+                    
+                }
+                
+                break;
+/*=========================================================================================================================================*/
             default:
                 break;
         }
@@ -1718,6 +1918,31 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
                             [self.delegate attributedLabel:self didLongPressLinkWithTransitInformation:result.components atPoint:touchPoint];
                             return;
                         }
+                        
+/*=========================================================================================================================================*/
+                    case NSTextCheckingTypeRegularExpression:
+                        if ([result.regularExpression.pattern isEqualToString:kTTTMentionRegexPatternString]) {
+                            if ([self.delegate respondsToSelector:@selector(attributedLabel:didLongPressLinkWithMention:atPoint:)]) {
+                                [self.delegate attributedLabel:self didLongPressLinkWithMention:[self.attributedText.string substringWithRange:result.range] atPoint:touchPoint];;
+                                return;
+                            }
+                            
+                        } else if ([result.regularExpression.pattern isEqualToString:kTTTHashTagTwitterPatternString]) {
+                            if ([self.delegate respondsToSelector:@selector(attributedLabel:didLongPressLinkWithTwitterHashTag:atPoint:)]) {
+                                [self.delegate attributedLabel:self didLongPressLinkWithTwitterHashTag:[self.attributedText.string substringWithRange:result.range] atPoint:touchPoint];
+                                return;
+                            }
+                            
+                        } else if ([result.regularExpression.pattern isEqualToString:kTTTHashTagWeiboPatternString]) {
+                            if ([self.delegate respondsToSelector:@selector(attributedLabel:didLongPressLinkWithWeiboHashTag:atPoint:)]) {
+                                [self.delegate attributedLabel:self didLongPressLinkWithWeiboHashTag:[self.attributedText.string substringWithRange:result.range] atPoint:touchPoint];
+                                return;
+                            }
+                            
+                        }
+                        
+                        break;
+/*=========================================================================================================================================*/
                     default:
                         break;
                 }

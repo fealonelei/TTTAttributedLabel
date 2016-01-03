@@ -46,59 +46,6 @@ static inline NSRegularExpression * ParenthesisRegularExpression() {
     return _parenthesisRegularExpression;
 }
 
-/*=========================================================================================================================================*/
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wall"
-/**
- *
- *  @brief  Twitter or Weibo mention( @somebody ) function
- *
- */
-static inline NSRegularExpression * MentionRegularExpression() {
-    static NSRegularExpression *_mentionRegularExpression = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        _mentionRegularExpression = [[NSRegularExpression alloc] initWithPattern:@"@[\u4e00-\u9fa5a-zA-Z0-9_-]{2,30}" options:NSRegularExpressionCaseInsensitive error:nil];
-    });
-    
-    return _mentionRegularExpression;
-}
-
-/**
- *
- *  @brief Hash tag in Twitter style
- *
- */
-static inline NSRegularExpression * HashTagTwitterRegularExpression() {
-    static NSRegularExpression *_hashTagTwitterRegularExpression = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        NSError *error = nil;
-        _hashTagTwitterRegularExpression = [[NSRegularExpression alloc] initWithPattern:@"(?<!\\w)#([\\w\\_]+)?" options:0 error:&error];
-    });
-    
-    return _hashTagTwitterRegularExpression;
-}
-
-/**
- *
- *  @brief  Hash tag in Weibo style ( don't know Weibo yet ? visit https://en.wikipedia.org/wiki/Sina_Weibo )
- *
- */
-static inline NSRegularExpression * HashTagWeiboRegularExpression() {
-    static NSRegularExpression *_hashTagWeiboRegularExpression = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        _hashTagWeiboRegularExpression = [[NSRegularExpression alloc] initWithPattern:@"(?<!\\w)#([^#]+?)#" options:NSRegularExpressionCaseInsensitive error:nil];
-    });
-    
-    return _hashTagWeiboRegularExpression;
-}
-#pragma clang diagnostic pop
-
-/*=========================================================================================================================================*/
-
 @implementation AttributedTableViewCell
 @synthesize summaryText = _summaryText;
 @synthesize summaryLabel = _summaryLabel;
@@ -153,7 +100,12 @@ static inline NSRegularExpression * HashTagWeiboRegularExpression() {
 - (void)drawRect:(CGRect)rect {
     [super drawRect:rect];
     
+    __weak __typeof(self)weakSelf = self;
+    
     [self.summaryLabel setText:self.summaryText afterInheritingLabelAttributesAndConfiguringWithBlock:^NSMutableAttributedString *(NSMutableAttributedString *mutableAttributedString) {
+        
+        __strong __typeof(weakSelf)strongSelf = weakSelf;
+        
         NSRange stringRange = NSMakeRange(0, [mutableAttributedString length]);
         
         NSRegularExpression *regexp = NameRegularExpression();
@@ -182,21 +134,18 @@ static inline NSRegularExpression * HashTagWeiboRegularExpression() {
             }
         }];
         
-        regexp = HashTagWeiboRegularExpression();
-        [regexp enumerateMatchesInString:[mutableAttributedString string] options:0 range:stringRange usingBlock:^(NSTextCheckingResult * result, __unused NSMatchingFlags flags, __unused BOOL *stop) {
-            UIFont *italicSystemFont = [UIFont italicSystemFontOfSize:kEspressoDescriptionTextFontSize];
-            CTFontRef italicFont = CTFontCreateWithName((__bridge CFStringRef)italicSystemFont.fontName, italicSystemFont.pointSize, NULL);
-            if (italicFont) {
-                [mutableAttributedString removeAttribute:(NSString *)kCTFontAttributeName range:result.range];
-                [mutableAttributedString addAttribute:(NSString *)kCTFontAttributeName value:(__bridge id)italicFont range:result.range];
-                CFRelease(italicFont);
-                
-                [mutableAttributedString removeAttribute:(NSString *)kCTForegroundColorAttributeName range:result.range];
-                [mutableAttributedString addAttribute:(NSString *)kCTForegroundColorAttributeName value:(__bridge id)[[UIColor redColor] CGColor] range:result.range];
-            }
-        }];
+        /*=========================================================================================================================================*/
         
+        UIFont *weiboRegexFont = [UIFont systemFontOfSize:kEspressoDescriptionTextFontSize];
+        CTFontRef weiboFont = CTFontCreateWithName((__bridge CFStringRef)weiboRegexFont.fontName, weiboRegexFont.pointSize, NULL);
         
+        [strongSelf.summaryLabel setCheckType: TTTextCheckingTypeWeiboHashTag];
+        [strongSelf.summaryLabel setWeiboHashTagAttributes: @{ (NSString *)kCTFontAttributeName:(__bridge id)weiboFont,
+                                                               (NSString *)kCTForegroundColorAttributeName: (__bridge id)[[UIColor redColor] CGColor]}];
+        mutableAttributedString = [strongSelf.summaryLabel retrieveFromSocialRegexResult];
+        /*=========================================================================================================================================*/
+        
+        NSLog(@"AAAAAAAAAA %@", mutableAttributedString.string);
         return mutableAttributedString;
     }];
     
