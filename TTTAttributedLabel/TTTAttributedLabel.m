@@ -28,6 +28,8 @@
 
 #define kTTTLineBreakWordWrapTextWidthScalingFactor (M_PI / M_E)
 
+static CGFloat const TTTFLOAT_MAX = 100000;
+
 /*=========================================================================================================================================*/
 
 NSString * const kTTTMentionRegexPatternString = @"@[\u4e00-\u9fa5a-zA-Z0-9_-]{2,30}";
@@ -35,8 +37,6 @@ NSString * const kTTTHashTagTwitterPatternString = @"(?<!\\w)#([\\w\\_]+)?";
 NSString * const kTTTHashTagWeiboPatternString = @"(?<!\\w)#([^#]+?)#";
 
 /*=========================================================================================================================================*/
-
-static CGFloat const TTTFLOAT_MAX = 100000;
 
 NSString * const kTTTStrikeOutAttributeName = @"TTTStrikeOutAttribute";
 NSString * const kTTTBackgroundFillColorAttributeName = @"TTTBackgroundFillColor";
@@ -710,7 +710,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
  *  @param mentionAttributes <#mentionAttributes description#>
  */
 - (void)setMentionAttributes: (NSDictionary<NSString *,id> *)mentionAttributes {
-    NSAssert(self.realCheckType & TTTextCheckingTypeMention, @"you didn't enable TTTextCheckingTypeMention");
+    NSAssert(self.realCheckType & TTTextCheckingTypeMention, @"TTTextCheckingTypeMention has not been enabled");
     
     [self.mentionRegexp enumerateMatchesInString: [self.tempAttributedString string]
                                          options: 0
@@ -732,7 +732,8 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
  *  @param twitterHashTagAttributes <#twitterHashTagAttributes description#>
  */
 - (void)setTwitterHashTagAttributes: (NSDictionary<NSString *,id> *)twitterHashTagAttributes {
-    NSAssert(self.realCheckType & TTTextCheckingTypeTwtterHashTag, @"you didn't enable TTTextCheckingTypeTwitterHashTag");
+    NSAssert(self.realCheckType & TTTextCheckingTypeTwtterHashTag, @"TTTextCheckingTypeTwitterHashTag has not been enabled");
+    NSAssert(!(self.realCheckType & TTTextCheckingTypeWeiboHashTag), @"Twitter hashtag can not along with Weibo hashtag");
     
     [self.twitterHashTagRegexp enumerateMatchesInString: [self.tempAttributedString string]
                                                 options: 0
@@ -754,7 +755,8 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
  *  @param weiboHashTagAttributes <#weiboHashTagAttributes description#>
  */
 - (void)setWeiboHashTagAttributes: (NSDictionary<NSString *,id> *)weiboHashTagAttributes {
-    NSAssert(self.realCheckType & TTTextCheckingTypeWeiboHashTag, @"you didn't enable TTTextCheckingTypeWeiboHashTag");
+    NSAssert(self.realCheckType & TTTextCheckingTypeWeiboHashTag, @"TTTextCheckingTypeWeiboHashTag has not been enabled");
+    NSAssert(!(self.realCheckType & TTTextCheckingTypeTwtterHashTag), @"Weibo hashtag can not along with Twitter hashtag");
     
     [self.weiboHashTagRegexp enumerateMatchesInString: [self.tempAttributedString string]
                                               options: 0

@@ -137,15 +137,17 @@ static inline NSRegularExpression * ParenthesisRegularExpression() {
         /*=========================================================================================================================================*/
         
         UIFont *weiboRegexFont = [UIFont systemFontOfSize:kEspressoDescriptionTextFontSize];
-        CTFontRef weiboFont = CTFontCreateWithName((__bridge CFStringRef)weiboRegexFont.fontName, weiboRegexFont.pointSize, NULL);
+        CTFontRef socialRegexFont = CTFontCreateWithName((__bridge CFStringRef)weiboRegexFont.fontName, weiboRegexFont.pointSize, NULL);
         
-        [strongSelf.summaryLabel setCheckType: TTTextCheckingTypeWeiboHashTag];
-        [strongSelf.summaryLabel setWeiboHashTagAttributes: @{ (NSString *)kCTFontAttributeName:(__bridge id)weiboFont,
+        [strongSelf.summaryLabel setCheckType: TTTextCheckingTypeWeiboHashTag | TTTextCheckingTypeMention];
+        [strongSelf.summaryLabel setWeiboHashTagAttributes: @{ (NSString *)kCTFontAttributeName:(__bridge id)socialRegexFont,
                                                                (NSString *)kCTForegroundColorAttributeName: (__bridge id)[[UIColor redColor] CGColor]}];
+        [strongSelf.summaryLabel setMentionAttributes: @{ (NSString *)kCTFontAttributeName:(__bridge id)socialRegexFont,
+                                                          (NSString *)kCTForegroundColorAttributeName: (__bridge id)[[UIColor cyanColor] CGColor]}];
+        
         mutableAttributedString = [strongSelf.summaryLabel retrieveFromSocialRegexResult];
         /*=========================================================================================================================================*/
         
-        NSLog(@"AAAAAAAAAA %@", mutableAttributedString.string);
         return mutableAttributedString;
     }];
     

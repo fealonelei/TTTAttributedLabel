@@ -40,12 +40,21 @@ typedef NS_ENUM(NSInteger, TTTAttributedLabelVerticalAlignment) {
     TTTAttributedLabelVerticalAlignmentBottom   = 2,
 };
 
+/*=========================================================================================================================================*/
+
+/**
+ social media regex type, such as mention = @somebody, #twitter_hashtag, #weibo hashtag#
+ 
+ @brief why using TT_Text, not TTT_Text ? This is NOT modify by TTTAttributedLabel author, so I intend to avoid potential conflict.
+ */
 typedef NS_OPTIONS(NSUInteger, TTTextCheckingType) {
     TTTextCheckingTypeNone = 0,
     TTTextCheckingTypeMention = 1 << 0,
     TTTextCheckingTypeTwtterHashTag = 1 << 1,
     TTTextCheckingTypeWeiboHashTag = 1 << 2
 };
+
+/*=========================================================================================================================================*/
 
 /**
  Determines whether the text to which this attribute applies has a strikeout drawn through itself.
@@ -353,20 +362,17 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
 
 
 /**
- *
- *  @brief  <#Description#>
+ @somebody attributes, you must enable `TTTextCheckingTypeMention` before，otherwise a crash will cause.
  */
 @property (nonatomic, strong) NSDictionary<NSString *, id> *mentionAttributes;
 
 /**
- *
- *  @brief  <#Description#>
+ #twitter_hashtag, you must enable `TTTextCheckingTypeTwitterHashTag` before, and `TTTextCheckingTypeWeiboHashTag` and `TTTextCheckingTypeTwitterHashTag` can NOT been enabled together.
  */
 @property (nonatomic, strong) NSDictionary<NSString *, id> *twitterHashTagAttributes;
 
 /**
- *
- *  @brief  <#Description#>
+ #weibo hashtag, you must enable `TTTextCheckingTypeWeiboHashTag` before, and `TTTextCheckingTypeWeiboHashTag` and `TTTextCheckingTypeTwitterHashTag` can NOT been enabled together.
  */
 @property (nonatomic, strong) NSDictionary<NSString *, id> *weiboHashTagAttributes;
 
@@ -375,11 +381,9 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
 
 /**
  *
- *  @brief  <#Description#>
- *
  *  @warning if `@property checkType` has been set, this method MUST be called, otherwise exception may happen.
  *
- *  @return <#return value description#>
+ *  @return get mutable attributed string from setting `TTTextCheckingType` and `mentionAttributes` `twitterHashTagAttributes` `weiboHashTagAttributes`. If attributes have seeting for other purpose, all of them will be included in the return value. A pre_temp_saved NSMutableAttributedString is Not necessary.
  */
 - (NSMutableAttributedString *)retrieveFromSocialRegexResult;
 
@@ -581,29 +585,28 @@ didSelectLinkWithTransitInformation:(NSDictionary *)components;
 /*=========================================================================================================================================*/
 
 /**
- *
- *  @brief  <#Description#>
- *
- *  @param label         <#label description#>
- *  @param mentionString <#mentionString description#>
+ Tells the delegate that user did select a link to mention.
+ 
+ @param label The label whose link was selected.
+ @param mentionString The mention string for the selected link
  */
 - (void)attributedLabel:(TTTAttributedLabel *)label
    didSelectMentionLink:(NSString *)mentionString;
 
 /**
- *  @brief  <#Description#>
- *
- *  @param label         <#label description#>
- *  @param hashTagString <#hashTagString description#>
+ Tells the delegate that user did select a link to twitter_hashtag
+
+ @param label The label whose link was selected.
+ @param hashTagString A twitter style hash tag string for the selected link
  */
 - (void)attributedLabel:(TTTAttributedLabel *)label
 didSelectTwitterHashTag:(NSString *)hashTagString;
 
 /**
- *  @brief  <#Description#>
- *
- *  @param label         <#label description#>
- *  @param hashTagString <#hashTagString description#>
+ Tells the delegate that user did select a link to weibo hashtag
+ 
+ @param label The label whose link was selected.
+ @param hashTagString A weibo style hash tag string for the selected link
  */
 - (void)attributedLabel:(TTTAttributedLabel *)label
   didSelectWeiboHashTag:(NSString *)hashTagString;
@@ -706,33 +709,33 @@ didLongPressLinkWithTransitInformation:(NSDictionary *)components
 /*=========================================================================================================================================*/
 
 /**
- *  @brief  <#Description#>
- *
- *  @param label         <#label description#>
- *  @param mentionString <#mentionString description#>
- *  @param point         <#point description#>
+ Tells the delegate that the user long-pressed a link to a mention string
+ 
+ @param label         The label whose link was selected.
+ @param mentionString The mention string for the pressed link
+ @param point         the point pressed, in the label's coordinate space
  */
 - (void)attributedLabel:(TTTAttributedLabel *)label
 didLongPressLinkWithMention:(NSString *)mentionString
                 atPoint:(CGPoint)point;
 
 /**
- *  @brief  <#Description#>
- *
- *  @param label         <#label description#>
- *  @param hashTagString <#hashTagString description#>
- *  @param point         <#point description#>
+ Tells the delegate that the user long-pressed a link to a twitter_hashtag
+ 
+ @param label         The label whose link was selected.
+ @param hashTagString A twitter style hash tag string for the pressed link
+ @param point         the point pressed, in the label's coordinate space
  */
 - (void)attributedLabel:(TTTAttributedLabel *)label
 didLongPressLinkWithTwitterHashTag:(NSString *)hashTagString
                 atPoint:(CGPoint)point;
 
 /**
- *  @brief  <#Description#>
- *
- *  @param label         <#label description#>
- *  @param hashTagString <#hashTagString description#>
- *  @param point         <#point description#>
+ Tells the delegate that the user long-pressed a link to a weibo hashtag
+ 
+ @param label         The label whose link was selected.
+ @param hashTagString A weibo style hash tag string for the pressed link
+ @param point         the point pressed, in the label's coordinate space
  */
 - (void)attributedLabel:(TTTAttributedLabel *)label
 didLongPressLinkWithWeiboHashTag:(NSString *)hashTagString
