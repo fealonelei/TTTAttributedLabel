@@ -142,7 +142,7 @@ CTFontRef socialRegexFont = CTFontCreateWithName((__bridge CFStringRef)weiboRege
 mutableAttributedString = [strongSelf.summaryLabel retrieveFromSocialRegexResult];
 
 ```
-
+`I don't think supporting < iOS 6.0 is a good idea, so, if encounter any problem on os version below iOS 6, don't using this repo.`
 
 ### Links and Data Detection
 
