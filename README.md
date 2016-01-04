@@ -1,6 +1,5 @@
 # TTTAttributedLabel
 
-[![Circle CI](https://circleci.com/gh/TTTAttributedLabel/TTTAttributedLabel.svg?style=svg)](https://circleci.com/gh/TTTAttributedLabel/TTTAttributedLabel) [![Documentation](http://img.shields.io/cocoapods/v/TTTAttributedLabel.svg?style=flat)](http://cocoadocs.org/docsets/TTTAttributedLabel/) [![codecov.io](http://codecov.io/github/TTTAttributedLabel/TTTAttributedLabel/coverage.svg?branch=master)](http://codecov.io/github/TTTAttributedLabel/TTTAttributedLabel?branch=master) [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 
 **A drop-in replacement for `UILabel` that supports attributes, data detectors, links, and more**
 
@@ -32,6 +31,9 @@ It also includes advanced paragraph style properties:
 - `textInsets`
 - `verticalAlignment`
 
+
+### All origin usage can be found on origin repo [TTTAttributedLabel](https://github.com/TTTAttributedLabel/TTTAttributedLabel) ,
+
 ### Accessibility
 
 As of version 1.10.0, `TTTAttributedLabel` supports VoiceOver through the  `UIAccessibilityElement` protocol. Each link can be individually selected, with an `accessibilityLabel` equal to its string value, and a corresponding `accessibilityValue` for URL, phone number, and date links.  Developers who wish to change this behavior or provide custom values should create a subclass and override `accessibilityElements`.
@@ -51,7 +53,7 @@ As of version 1.10.0, `TTTAttributedLabel` supports VoiceOver through the  `UIAc
 ```ruby
 # Podfile
 
-pod 'TTTAttributedLabel'
+pod 'TTTAttributedLabel-WithMore'
 ```
 
 ## Usage
@@ -121,6 +123,27 @@ IB Designables: Failed to render instance of TTTAttributedLabel: Failed to load 
 - Install `TTTAttributedLabel` as a dynamic framework using CocoaPods with `use_frameworks!` in your `Podfile`, or with Carthage
 - Install `TTTAttributedLabel` by dragging its source files to your project
 
+## `Social media common identifiers regex`
+
+If you want to use some common identifiers which are common on social media, such as `@somebody` on twitter, `#twitter_hashtag` on twitter, `#weibo hashtag#` on [sina weibo, 微博](https://en.wikipedia.org/wiki/Sina_Weibo), you can consider the following code.     
+ Find more detail on example. 
+
+
+``` objective-c
+        UIFont *weiboRegexFont = [UIFont systemFontOfSize:kEspressoDescriptionTextFontSize];
+        CTFontRef socialRegexFont = CTFontCreateWithName((__bridge CFStringRef)weiboRegexFont.fontName, weiboRegexFont.pointSize, NULL);
+        
+        [strongSelf.summaryLabel setCheckType: TTTextCheckingTypeWeiboHashTag | TTTextCheckingTypeMention];
+        [strongSelf.summaryLabel setWeiboHashTagAttributes: @{ (NSString *)kCTFontAttributeName:(__bridge id)socialRegexFont,
+                                                               (NSString *)kCTForegroundColorAttributeName: (__bridge id)[[UIColor redColor] CGColor]}];
+        [strongSelf.summaryLabel setMentionAttributes: @{ (NSString *)kCTFontAttributeName:(__bridge id)socialRegexFont,
+                                                          (NSString *)kCTForegroundColorAttributeName: (__bridge id)[[UIColor cyanColor] CGColor]}];
+        
+        mutableAttributedString = [strongSelf.summaryLabel retrieveFromSocialRegexResult];
+
+```
+
+
 ### Links and Data Detection
 
 In addition to supporting rich text, `TTTAttributedLabel` can automatically detect links for dates, addresses, URLs, phone numbers, transit information, and allows you to embed your own links.
@@ -133,20 +156,6 @@ label.text = @"Fork me on GitHub! (http://github.com/mattt/TTTAttributedLabel/)"
 
 NSRange range = [label.text rangeOfString:@"me"];
 [label addLinkToURL:[NSURL URLWithString:@"http://github.com/mattt/"] withRange:range]; // Embedding a custom link in a substring
-```
-
-## Demo
-
-```bash
-pod try TTTAttributedLabel
-```
-
-...or clone this repo and build and run/test the `Espressos` project in Xcode to see `TTTAttributedLabel` in action. If you don't have [CocoaPods](http://cocoapods.org) installed, grab it with `[sudo] gem install cocoapods`.
-
-```bash
-cd Example
-pod install
-open Espressos.xcworkspace
 ```
 
 ## Requirements

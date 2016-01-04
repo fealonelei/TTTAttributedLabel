@@ -1,11 +1,11 @@
 Pod::Spec.new do |s|
-  s.name         = 'TTTAttributedLabel'
-  s.version      = '2.0.0'
-  s.authors      = { 'Mattt Thompson' => 'm@mattt.me' }
-  s.homepage     = 'https://github.com/TTTAttributedLabel/TTTAttributedLabel'
+  s.name         = 'TTTAttributedLabel-WithMore'
+  s.version      = '1.13.4'
+  s.authors      = { 'Bob Wei' => 'fealonelei@gmail.com' }
+  s.homepage     = 'https://github.com/fealonelei/TTTAttributedLabel-WithMore'
   s.platform     = :ios
-  s.summary      = 'A drop-in replacement for UILabel that supports attributes, data detectors, links, and more.'
-  s.source       = { :git => 'https://github.com/TTTAttributedLabel/TTTAttributedLabel.git', :tag => s.version.to_s }
+  s.summary      = 'A drop-in replacement for UILabel that supports attributes, data detectors, links, and social media common detectors.'
+  s.source       = { :git => 'https://github.com/fealonelei/TTTAttributedLabel-WithMore.git', :tag => s.version.to_s }
   s.license      = 'MIT'
   s.frameworks   = 'UIKit', 'CoreText', 'CoreGraphics', 'QuartzCore'
   s.source_files = 'TTTAttributedLabel'
