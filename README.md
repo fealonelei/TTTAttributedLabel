@@ -123,7 +123,7 @@ IB Designables: Failed to render instance of TTTAttributedLabel: Failed to load 
 - Install `TTTAttributedLabel` as a dynamic framework using CocoaPods with `use_frameworks!` in your `Podfile`, or with Carthage
 - Install `TTTAttributedLabel` by dragging its source files to your project
 
-## ** `Social media common identifiers regex` **
+## **`Social media common identifiers regex`**
 
 If you want to use some common identifiers which are common on social media, such as `@somebody` on twitter, `#twitter_hashtag` on twitter, `#weibo hashtag#`  `#微博话题#` on ([sina weibo, 微博](https://en.wikipedia.org/wiki/Sina_Weibo)), you can consider the following code.     
  Find more detail on example. 
