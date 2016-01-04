@@ -1,7 +1,7 @@
 # TTTAttributedLabel
 
 
-**A drop-in replacement for `UILabel` that supports attributes, data detectors, links, and more**
+**A drop-in replacement for `UILabel` that supports attributes, data detectors, links, and social media common identifiers(@ # ##)**
 
 `TTTAttributedLabel` is a drop-in replacement for `UILabel` providing a simple way to performantly render [attributed strings](http://developer.apple.com/library/mac/#documentation/Cocoa/Reference/Foundation/Classes/NSAttributedString_Class/Reference/Reference.html). As a bonus, it also supports link embedding, both automatically with `NSTextCheckingTypes` and manually by specifying a range for a URL, address, phone number, event, or transit information.
 
@@ -32,7 +32,7 @@ It also includes advanced paragraph style properties:
 - `verticalAlignment`
 
 
-### All origin usage can be found on origin repo [TTTAttributedLabel](https://github.com/TTTAttributedLabel/TTTAttributedLabel) ,
+### **All origin usage can be found on origin repo [TTTAttributedLabel](https://github.com/TTTAttributedLabel/TTTAttributedLabel)**
 
 ### Accessibility
 
@@ -123,23 +123,23 @@ IB Designables: Failed to render instance of TTTAttributedLabel: Failed to load 
 - Install `TTTAttributedLabel` as a dynamic framework using CocoaPods with `use_frameworks!` in your `Podfile`, or with Carthage
 - Install `TTTAttributedLabel` by dragging its source files to your project
 
-## `Social media common identifiers regex`
+## ** `Social media common identifiers regex` **
 
-If you want to use some common identifiers which are common on social media, such as `@somebody` on twitter, `#twitter_hashtag` on twitter, `#weibo hashtag#` on [sina weibo, 微博](https://en.wikipedia.org/wiki/Sina_Weibo), you can consider the following code.     
+If you want to use some common identifiers which are common on social media, such as `@somebody` on twitter, `#twitter_hashtag` on twitter, `#weibo hashtag#`  `#微博话题#` on ([sina weibo, 微博](https://en.wikipedia.org/wiki/Sina_Weibo)), you can consider the following code.     
  Find more detail on example. 
 
 
 ``` objective-c
-        UIFont *weiboRegexFont = [UIFont systemFontOfSize:kEspressoDescriptionTextFontSize];
-        CTFontRef socialRegexFont = CTFontCreateWithName((__bridge CFStringRef)weiboRegexFont.fontName, weiboRegexFont.pointSize, NULL);
-        
-        [strongSelf.summaryLabel setCheckType: TTTextCheckingTypeWeiboHashTag | TTTextCheckingTypeMention];
-        [strongSelf.summaryLabel setWeiboHashTagAttributes: @{ (NSString *)kCTFontAttributeName:(__bridge id)socialRegexFont,
-                                                               (NSString *)kCTForegroundColorAttributeName: (__bridge id)[[UIColor redColor] CGColor]}];
-        [strongSelf.summaryLabel setMentionAttributes: @{ (NSString *)kCTFontAttributeName:(__bridge id)socialRegexFont,
-                                                          (NSString *)kCTForegroundColorAttributeName: (__bridge id)[[UIColor cyanColor] CGColor]}];
-        
-        mutableAttributedString = [strongSelf.summaryLabel retrieveFromSocialRegexResult];
+UIFont *weiboRegexFont = [UIFont systemFontOfSize:kEspressoDescriptionTextFontSize];
+CTFontRef socialRegexFont = CTFontCreateWithName((__bridge CFStringRef)weiboRegexFont.fontName, weiboRegexFont.pointSize, NULL);
+
+[strongSelf.summaryLabel setCheckType: TTTextCheckingTypeWeiboHashTag | TTTextCheckingTypeMention];
+[strongSelf.summaryLabel setWeiboHashTagAttributes: @{ (NSString *)kCTFontAttributeName:(__bridge id)socialRegexFont,
+                                                        (NSString *)kCTForegroundColorAttributeName: (__bridge id)[[UIColor redColor] CGColor]}];
+[strongSelf.summaryLabel setMentionAttributes: @{ (NSString *)kCTFontAttributeName:(__bridge id)socialRegexFont,
+                                                    (NSString *)kCTForegroundColorAttributeName: (__bridge id)[[UIColor cyanColor] CGColor]}];
+
+mutableAttributedString = [strongSelf.summaryLabel retrieveFromSocialRegexResult];
 
 ```
 
