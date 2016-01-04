@@ -33,6 +33,7 @@ It also includes advanced paragraph style properties:
 
 
 ### **All origin usage can be found on origin repo [TTTAttributedLabel](https://github.com/TTTAttributedLabel/TTTAttributedLabel)**
+![demo gif](https://raw.githubusercontent.com/fealonelei/TTTAttributedLabel-WithMore/master/TTTAttributedLabel-WithMore.gif)
 
 ### Accessibility
 
